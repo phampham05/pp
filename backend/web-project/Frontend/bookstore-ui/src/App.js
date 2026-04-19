@@ -9,15 +9,22 @@ import Cart from './pages/Cart';
 import AccountPage from './pages/AccountPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import { CartProvider, useCart } from './contexts/CartContext';
+import {
+  CartProvider,
+  useCartActions,
+  useCartState
+} from './contexts/CartContext';
 import { HistoryProvider } from './contexts/HistoryContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { resolveAvatarUrl, DEFAULT_AVATAR_URL } from './config/api';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CheckoutPage from './pages/CheckoutPage';
+import VNPayGateway from './pages/VNPayGateway';
 
 const Navbar = () => {
-  const { cartItemCount, fetchCart } = useCart();
+  const { cartItemCount } = useCartState();
+  const { fetchCart } = useCartActions();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,22 +84,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="relative w-full lg:max-w-xl">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-24 outline-none transition focus:border-blue-400 focus:bg-white"
-            placeholder="Tìm sách theo tên hoặc tác giả..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-blue-600 px-4 py-1.5 text-sm text-white transition hover:bg-blue-700"
-          >
-            Tìm
-          </button>
-        </form>
-
         <div className="hidden items-center gap-6 font-medium lg:flex">
           <Link to="/" className="hover:text-blue-600">Trang chủ</Link>
           <Link to="/books" className="hover:text-blue-600">Sách</Link>
@@ -147,6 +138,8 @@ function App() {
                   <Route path="/account" element={<AccountPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/vnpay-gateway" element={<VNPayGateway />} />
                 </Routes>
               </main>
 

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BookCard from '../components/BookCard';
 import { useHistory } from '../contexts/HistoryContext';
-import { buildApiUrl } from '../config/api';
+import { buildApiUrl, extractResultList } from '../config/api';
 
 const HOME_BOOK_LIMIT = 12;
 
@@ -21,7 +21,7 @@ const Home = () => {
         return res.json();
       })
       .then((data) => {
-        const bookList = Array.isArray(data) ? data : [];
+        const bookList = extractResultList(data);
         setBooks(bookList.slice(0, HOME_BOOK_LIMIT));
       })
       .catch((err) => {

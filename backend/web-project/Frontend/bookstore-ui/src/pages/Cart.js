@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Trash2, Plus, Minus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { buildApiUrl } from '../config/api';
-import { useCart } from '../contexts/CartContext';
+import { useCartActions, useCartState } from '../contexts/CartContext';
+
 
 const Cart = () => {
   const { user } = useAuth();
-  const {
-    cart,
-    fetchCart,
-    removeFromCartSuccess,
-    updateCartSuccess
-  } = useCart();
+  const { cart } = useCartState();
+  const { fetchCart, removeFromCartSuccess, updateCartSuccess } = useCartActions();
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
   const [loadingId, setLoadingId] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   useEffect(() => {
     if (token) fetchCart();
@@ -68,7 +67,9 @@ const Cart = () => {
     removeFromCartSuccess("Đã xóa toàn bộ giỏ hàng");
   };
 
-  const totalAmount = cart?.totalPrice || 0;
+  const totalAmount = cart?.items
+    ?.filter(item => selectedItems.includes(item.id))
+    .reduce((sum, item) => sum + (item.unitPrice ?? 0) * item.quantity, 0) || 0;
 
   if (!token || !user) {
     return (
@@ -89,14 +90,48 @@ const Cart = () => {
     );
   }
 
+  const toggleSelectItem = (id) => {
+    setSelectedItems((prev) =>
+      prev.includes(id)
+        ? prev.filter((i) => i !== id)
+        : [...prev, id]
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-8">Giỏ hàng của bạn</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          {cart.items.map((item) => (
+
+
+        <div className="flex items-center gap-2 mb-2">
+          <input
+            type="checkbox"
+            checked={selectedItems.length === cart.items.length}
+            onChange={() => {
+              if (selectedItems.length === cart.items.length) {
+                setSelectedItems([]);
+              } else {
+                setSelectedItems(cart.items.map(i => i.id));
+              }
+            }}
+          />
+          <span>Chọn tất cả</span>
+        </div>
+
+
+         {cart.items.map((item) => (
             <div key={item.id} className="flex gap-4 bg-white p-4 rounded-lg shadow-sm items-center">
+
+              {/* CHECKBOX */}
+              <input
+                type="checkbox"
+                checked={selectedItems.includes(item.id)}
+                onChange={() => toggleSelectItem(item.id)}
+              />
+
               <img
                 src={item.image}
                 alt={item.title}
@@ -147,11 +182,29 @@ const Cart = () => {
           </div>
 
           <button
-            onClick={() => alert("Thanh toán chưa làm")}
-            className="w-full bg-blue-600 text-white py-3 rounded mt-6"
+            disabled={selectedItems.length === 0}
+            onClick={() => {
+              const selected = cart.items.filter(i =>
+                selectedItems.includes(i.id)
+              );
+            
+              const total = selected.reduce(
+                (sum, i) => sum + (i.unitPrice ?? 0) * i.quantity,
+                0
+              );
+            
+              navigate('/checkout', {
+                state: {
+                  items: selected,
+                  totalPrice: total
+                }
+              });
+            }}
+            className="w-full bg-blue-600 text-white py-3 rounded mt-6 disabled:opacity-50"
           >
             Thanh toán
           </button>
+
         </div>
       </div>
     </div>

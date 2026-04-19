@@ -1,8 +1,15 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState
+} from 'react';
 import { buildApiUrl } from '../config/api';
 import { toast } from 'react-toastify';
 
-const CartContext = createContext();
+const CartStateContext = createContext(null);
+const CartActionsContext = createContext(null);
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState({
@@ -17,7 +24,7 @@ export const CartProvider = ({ children }) => {
   const cartItemCount =
     cart?.items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -34,34 +41,47 @@ export const CartProvider = ({ children }) => {
       console.error(err);
       toast.error("Không thể tải giỏ hàng");
     }
-  };
+  }, []);
 
   // wrapper actions để show toast UI đồng nhất
-  const addToCartSuccess = (msg = "Đã thêm vào giỏ hàng") => {
+  const addToCartSuccess = useCallback((msg = "Đã thêm vào giỏ hàng") => {
     toast.success(msg);
-  };
+  }, []);
 
-  const removeFromCartSuccess = (msg = "Đã xóa sản phẩm") => {
+  const removeFromCartSuccess = useCallback((msg = "Đã xóa sản phẩm") => {
     toast.info(msg);
-  };
+  }, []);
 
-  const updateCartSuccess = (msg = "Đã cập nhật giỏ hàng") => {
+  const updateCartSuccess = useCallback((msg = "Đã cập nhật giỏ hàng") => {
     toast.success(msg);
-  };
+  }, []);
+
+  const stateValue = useMemo(() => ({
+    cart,
+    cartItemCount
+  }), [cart, cartItemCount]);
+
+  const actionsValue = useMemo(() => ({
+    setCart,
+    fetchCart,
+    addToCartSuccess,
+    removeFromCartSuccess,
+    updateCartSuccess
+  }), [
+    fetchCart,
+    addToCartSuccess,
+    removeFromCartSuccess,
+    updateCartSuccess
+  ]);
 
   return (
-    <CartContext.Provider value={{
-      cart,
-      setCart,
-      fetchCart,
-      cartItemCount,
-      addToCartSuccess,
-      removeFromCartSuccess,
-      updateCartSuccess
-    }}>
-      {children}
-    </CartContext.Provider>
+    <CartStateContext.Provider value={stateValue}>
+      <CartActionsContext.Provider value={actionsValue}>
+        {children}
+      </CartActionsContext.Provider>
+    </CartStateContext.Provider>
   );
 };
 
-export const useCart = () => useContext(CartContext);
+export const useCartState = () => useContext(CartStateContext);
+export const useCartActions = () => useContext(CartActionsContext);

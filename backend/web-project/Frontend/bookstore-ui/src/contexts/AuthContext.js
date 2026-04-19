@@ -5,11 +5,20 @@ const USER_STORAGE_KEY = 'currentUser';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    } catch (err) {
+      console.error("Parse user lỗi:", err);
+      localStorage.removeItem(USER_STORAGE_KEY);
+    } finally {
+      setLoading(false); // QUAN TRỌNG NHẤT
     }
   }, []);
 
@@ -26,7 +35,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
