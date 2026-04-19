@@ -16,6 +16,8 @@ const BookDetail = () => {
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState('');
   const [reviews, setReviews] = useState([]);
+  const stock = book?.stock ?? 0;
+  const isOutOfStock = stock === 0;
 
   useEffect(() => {
     fetch(buildApiUrl(`/books/${id}`))
@@ -37,6 +39,11 @@ const BookDetail = () => {
     if (!user) {
       alert("Vui lòng đăng nhập để mua hàng!");
       navigate('/login');
+      return;
+    }
+
+    if (isOutOfStock) {
+      alert("Sản phẩm đã hết hàng!");
       return;
     }
 
@@ -131,9 +138,14 @@ const BookDetail = () => {
             <span className="text-gray-500">({reviews.length} đánh giá)</span>
           </div>
 
+          <p className="mb-4 text-sm text-gray-500">
+            {isOutOfStock ? 'Hết hàng' : `Còn ${stock} sản phẩm`}
+          </p>
+
           <button
             onClick={handleAddToCart}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
+            disabled={isOutOfStock}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ShoppingCart /> Thêm vào giỏ hàng
           </button>

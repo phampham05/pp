@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import BookCard from '../components/BookCard';
 import { Search } from 'lucide-react';
-import { buildApiUrl } from '../config/api';
+import { buildApiUrl, extractResultList } from '../config/api';
 
 const PAGE_SIZE = 12;
 
@@ -53,7 +53,7 @@ const BookList = () => {
     fetch(buildApiUrl('/books'))
       .then(res => res.json())
       .then(data => {
-        const bookList = Array.isArray(data) ? data : [];
+        const bookList = extractResultList(data);
 
         setBooks(bookList);
 

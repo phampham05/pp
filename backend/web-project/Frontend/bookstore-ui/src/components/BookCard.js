@@ -4,21 +4,22 @@ import StarRating from './StarRating';
 import { useAuth } from '../contexts/AuthContext';
 import { ShoppingCart } from 'lucide-react';
 import { buildApiUrl, resolveImageUrl } from '../config/api';
-import { useCart } from '../contexts/CartContext';
+import { useCartActions } from '../contexts/CartContext';
 import { toast } from 'react-toastify';
 
 const BookCard = ({ book }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { setCart, fetchCart, addToCartSuccess } = useCart();
+  const { setCart, addToCartSuccess } = useCartActions();
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const stock = book.stock ?? 0;
 
-  const isOutOfStock = !book.availableStock || book.availableStock === 0;
+  const isOutOfStock = stock === 0;
 
   const increaseQty = () => {
-    if (book.availableStock != null && quantity >= book.availableStock) {
-      toast.error(`Không thể vượt quá ${book.availableStock} sản phẩm trong kho`);
+    if (quantity >= stock) {
+      toast.error(`Không thể vượt quá ${stock} sản phẩm trong kho`);
       return;
     }
     setQuantity((prev) => prev + 1);
@@ -42,8 +43,8 @@ const BookCard = ({ book }) => {
       return;
     }
 
-    if (book.availableStock != null && quantity > book.availableStock) {
-      toast.error(`Chỉ còn ${book.availableStock} sản phẩm trong kho`);
+    if (quantity > stock) {
+      toast.error(`Chỉ còn ${stock} sản phẩm trong kho`);
       return;
     }
   
@@ -78,8 +79,8 @@ const BookCard = ({ book }) => {
       
         toast.error(msg);
       
-        if (res.status === 400 && book.availableStock != null) {
-          setQuantity(book.availableStock);
+        if (res.status === 400) {
+          setQuantity(Math.max(stock, 1));
         }
       
         if (res.status === 401) {
@@ -107,10 +108,10 @@ const BookCard = ({ book }) => {
   };
 
   useEffect(() => {
-    if (book.availableStock != null && quantity > book.availableStock) {
-      setQuantity(book.availableStock);
+    if (quantity > stock) {
+      setQuantity(Math.max(stock, 1));
     }
-  }, [book.availableStock]);
+  }, [quantity, stock]);
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col h-full">
@@ -143,7 +144,7 @@ const BookCard = ({ book }) => {
 
           <div className="flex flex-col items-center">
             <span className="text-xs text-gray-400">
-              Còn {book.availableStock}
+              Còn {stock}
             </span>
           </div>
 
@@ -166,9 +167,11 @@ const BookCard = ({ book }) => {
                 e.stopPropagation();
                 increaseQty();
               }}
-              disabled={book.availableStock != null && quantity >= book.availableStock}
+              disabled={isOutOfStock || quantity >= stock}
               title={
-                book.availableStock != null && quantity >= book.availableStock
+                isOutOfStock
+                  ? "Sản phẩm đã hết hàng"
+                  : quantity >= stock
                   ? "Đã đạt giới hạn tồn kho"
                   : "Tăng số lượng"
               }
@@ -184,8 +187,8 @@ const BookCard = ({ book }) => {
               handleAddToCart(e);
             }}
             disabled={loading || isOutOfStock}
+            aria-label="Thêm vào giỏ hàng"
             className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            // title="Thêm vào giỏ hàng"
           >
             <ShoppingCart size={20} />
           </button>

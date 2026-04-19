@@ -9,7 +9,11 @@ import Cart from './pages/Cart';
 import AccountPage from './pages/AccountPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import { CartProvider, useCart } from './contexts/CartContext';
+import {
+  CartProvider,
+  useCartActions,
+  useCartState
+} from './contexts/CartContext';
 import { HistoryProvider } from './contexts/HistoryContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { resolveAvatarUrl, DEFAULT_AVATAR_URL } from './config/api';
@@ -17,7 +21,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Navbar = () => {
-  const { cartItemCount, fetchCart } = useCart();
+  const { cartItemCount } = useCartState();
+  const { fetchCart } = useCartActions();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

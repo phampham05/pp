@@ -7,6 +7,22 @@ export const DEFAULT_AVATAR_URL = "/default-avatar.svg";
 
 export const buildApiUrl = (path) => `${API_BASE_URL}${path}`;
 
+export const extractResultList = (data) => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.result)) {
+    return data.result;
+  }
+
+  if (Array.isArray(data?.result?.content)) {
+    return data.result.content;
+  }
+
+  return [];
+};
+
 export const resolveImageUrl = (imagePath) => {
   if (!imagePath) {
     return '/placeholder-book.svg';

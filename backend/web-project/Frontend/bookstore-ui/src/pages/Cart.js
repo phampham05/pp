@@ -3,16 +3,12 @@ import { Trash2, Plus, Minus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { buildApiUrl } from '../config/api';
-import { useCart } from '../contexts/CartContext';
+import { useCartActions, useCartState } from '../contexts/CartContext';
 
 const Cart = () => {
   const { user } = useAuth();
-  const {
-    cart,
-    fetchCart,
-    removeFromCartSuccess,
-    updateCartSuccess
-  } = useCart();
+  const { cart } = useCartState();
+  const { fetchCart, removeFromCartSuccess, updateCartSuccess } = useCartActions();
   const token = localStorage.getItem("token");
   const [loadingId, setLoadingId] = useState(null);
 
